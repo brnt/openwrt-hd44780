@@ -145,13 +145,13 @@ static ssize_t hd44780_write(struct file *file, const char *buf, size_t count, l
 
 	if (c == 0x01)
 	{ // if the first char is 0x01, we enter command mode for the rest of the string
-		printk(KERN_DEBUG "command mode detected: %01x\n", c);
+		ptr++;
 		for (i=1;i<count;i++)
 		{
-			err = copy_from_user(&c,++ptr,1);
+			err = copy_from_user(&c,ptr++,1);
 			if (err != 0)
 				return -EFAULT;
-			WriteCommand(c);
+			WriteCommand(c&0xff); // we mask it to take care of some encoding problems
 		}
 	}
 	else
