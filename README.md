@@ -1,7 +1,7 @@
 hd44780
 =======
 
-hd44780 kernel module for OpenWRT
+hd44780 kernel module for OpenWRT using GPIOs
 
 This module controls LCD dot-matrix displays based on the popular [Hitachi
 HD44780](http://en.wikipedia.org/wiki/Hitachi_HD44780_LCD_controller) chipset. Data and commands are passed to the display through a misc device located at `/dev/hd44780`. To write text to the LCD, just write your text into the device file like this (ash):
@@ -30,6 +30,9 @@ Newline characters are automatically converted to the LCD's next line command, s
 
     hello world
     0.13524234984187
+
+### TODO ###
+* Include instructions for wiring LCD to GPIOs.
 
 
 ### Change Log ###
