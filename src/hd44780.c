@@ -252,7 +252,7 @@ static void __exit hd44780_exit(void)
 {
 	FreePins();
 	misc_deregister(&hd44780_device);
-	printk(KERN_INFO "hd44780 LCD driver (v1.0) unloaded.\n");
+	printk(KERN_INFO "hd44780 LCD driver (v1.1) unloaded.\n");
 }
 
 module_init(hd44780_init);
