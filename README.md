@@ -37,7 +37,17 @@ Wiring Instructions
 
 Building the Module
 -------------------
-(TODO)
+Copy the hd44780 folder into the `package` folder in your OpenWRT build root. From the build root, run
+
+	./scripts/feeds update -i
+
+This updates the package index, making the module you just added visible in menuconfig. Next run
+
+	make menuconfig
+
+and select the option for `kmod-hd44780` (Kernel Modules -> Other modules). Now the module will be built along with OpenWRT. To build just the module itself, run
+
+	make package/hd44780/compile
 
 
 ### Change Log ###
