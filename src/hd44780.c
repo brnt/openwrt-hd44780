@@ -151,7 +151,9 @@ static ssize_t hd44780_write(struct file *file, const char *buf, size_t count, l
 			err = copy_from_user(&c,ptr++,1);
 			if (err != 0)
 				return -EFAULT;
-			WriteCommand(c&0xff); // we mask it to take care of some encoding problems
+
+			mdelay(20);
+			WriteCommand(c);
 		}
 	}
 	else
