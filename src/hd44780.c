@@ -1,7 +1,11 @@
 /*
-   hd44780 driver using gpio pins.
+   OpenWRT hd44780 driver using GPIO pins.
 
-   Copyright (C) bifferos@yahoo.co.uk, 2008
+   Copyright (C) brentthomson@gmail.com, 2014
+
+   Adapted from code by bifferos:
+       http://svn.code.sf.net/p/linux-adm5120/code/OpenWrt/hd44780/
+       Copyright (C) bifferos@yahoo.co.uk, 2008
    */
 
 
@@ -14,22 +18,16 @@
 #include <asm/gpio.h>
 
 
-// Minor device number (major device is 'misc').
-#define HD44780_MINOR 153
-#define HD44780_COMMAND_MINOR 154
-
-
-// Pin assignments for the board.  Change the GPIO numbers to match your
-// wiring.
-
-//  Pin ID     Linux GPIO number      Edimax/Omnima pin annotation
-#define HD_RS       0              //        D6
-#define HD_RW       8              //        D7
-#define HD_E        1              //        D8
-#define HD_DB4     13              //        D9
-#define HD_DB5     14              //        D10
-#define HD_DB6     15              //        D11
-#define HD_DB7     16              //        D12
+// You'll need to change these values to suit your board's available GPIOs
+// These are convenient (adjacent) pins on the GS-Oolite v1.0
+//      Pin ID     GPIO number
+#define HD_RS           0
+#define HD_RW           8 // not used if LCD is write-only (typical)
+#define HD_E            1
+#define HD_DB4         13
+#define HD_DB5         14
+#define HD_DB6         15
+#define HD_DB7         16
 
 
 // Structures to hold the pins we've successfully allocated.
@@ -60,7 +58,7 @@ static tPinSet pins[] = {
 #define HD_E_HIGH  gpio_set_value(HD_E, 1);
 
 
-MODULE_AUTHOR("bifferos");
+MODULE_AUTHOR("brnt");
 MODULE_LICENSE("GPL");
 
 
@@ -139,16 +137,35 @@ static ssize_t hd44780_write(struct file *file, const char *buf, size_t count, l
 	char c;
 	const char* ptr = buf;
 	int i;
-	for (i=0;i<count;i++)
-	{
-		err = copy_from_user(&c,ptr++,1);
-		if (err != 0)
-			return -EFAULT;
-		// Write the byte to the display.
-		if (c == '\n') {
-			WriteCommand(0xC0);
-		} else {
-			WriteData(c);
+
+	// grab first char and check for command code
+	err = copy_from_user(&c,ptr,1);
+	if (err != 0)
+		return -EFAULT;
+
+	if (c == 0x01)
+	{ // if the first char is 0x01, we enter command mode for the rest of the string
+		printk(KERN_DEBUG "command mode detected: %01x\n", c);
+		for (i=1;i<count;i++)
+		{
+			err = copy_from_user(&c,++ptr,1);
+			if (err != 0)
+				return -EFAULT;
+			WriteCommand(c);
+		}
+	}
+	else
+	{ // otherwise, we spit data out to the screen
+		for (i=0;i<count;i++)
+		{
+			err = copy_from_user(&c,ptr++,1);
+			if (err != 0)
+				return -EFAULT;
+
+			if (c == '\n') // convert newline char to next line command
+				WriteCommand(0xC0);
+			else
+				WriteData(c);
 		}
 	}
 	return count;
@@ -161,40 +178,10 @@ static struct file_operations hd44780_fops = {
 };
 
 static struct miscdevice hd44780_device = {
-	HD44780_MINOR,
+	MISC_DYNAMIC_MINOR,
 	"hd44780",
 	&hd44780_fops,
 };
-
-// Called when writing to the command file
-static ssize_t hd44780_write_command(struct file *file, const char *buf, size_t count, loff_t *ppos) 
-{
-	int err;
-	char c;
-	const char* ptr = buf;
-	int i;
-	for (i=0;i<count;i++)
-	{
-		err = copy_from_user(&c,ptr++,1);
-		if (err != 0)
-			return -EFAULT;
-		// Write the byte to the display.
-		WriteCommand(c);
-	}
-	return count;
-}
-static struct file_operations hd44780_command_fops = {
-	.owner = THIS_MODULE,
-	//  .ioctl = hd44780_ioctl,  ioctl not supported for now.
-	.write = hd44780_write_command,
-};
-
-static struct miscdevice hd44780_command_device = {
-	HD44780_COMMAND_MINOR,
-	"hd44780-command",
-	&hd44780_command_fops,
-};
-
 
 // Return any acquired pins.
 static void FreePins(void)
@@ -217,13 +204,7 @@ static int __init hd44780_init(void)
 
 	// Register misc device
 	if (misc_register(&hd44780_device)) {
-		printk(KERN_WARNING "Couldn't register device %d\n", HD44780_MINOR);
-		return -EBUSY;
-	}
-
-	if (misc_register(&hd44780_command_device)) {
-		printk(KERN_WARNING "Couldn't register command device %d\n", HD44780_COMMAND_MINOR);
-		misc_deregister(&hd44780_device);
+		printk(KERN_WARNING "Couldn't register LCD device\n");
 		return -EBUSY;
 	}
 
@@ -263,7 +244,7 @@ static int __init hd44780_init(void)
 	WriteCommand(0x06);
 	udelay(50);
 
-	printk(KERN_INFO "hd44780 driver (v1.0) by bifferos, loaded.\n");
+	printk(KERN_INFO "hd44780 LCD driver (v1.1) loaded.\n");
 	return 0;
 }
 
@@ -271,8 +252,7 @@ static void __exit hd44780_exit(void)
 {
 	FreePins();
 	misc_deregister(&hd44780_device);
-	misc_deregister(&hd44780_command_device);
-	printk(KERN_INFO "hd44780 driver (v1.0) by bifferos, unloaded.\n");
+	printk(KERN_INFO "hd44780 LCD driver (v1.0) unloaded.\n");
 }
 
 module_init(hd44780_init);
