@@ -31,8 +31,13 @@ Newline characters are automatically converted to the LCD's next line command, s
     hello world
     0.13524234984187
 
-### TODO ###
-* Include instructions for wiring LCD to GPIOs.
+Wiring Instructions
+-------------------
+(TODO)
+
+Building the Module
+-------------------
+(TODO)
 
 
 ### Change Log ###
