@@ -30,7 +30,12 @@ would clear the screen and then write `hello world` to it. The second statement 
     fs.writeFileSync(data_file, "\1\1");
     fs.writeFile(data_file, 'hello world\n' + Math.random()));
 
-And here's the same thing again in Lua:
+Newline characters are automatically converted to the LCD's next line command, so the output here would be:
+
+    hello world
+    0.13524234984187
+
+And here's a similar thing, in Lua this time:
 
 	local lcd, err = io.open('/dev/hd44780', 'w')
 	if not lcd then return print(err) end
@@ -41,10 +46,6 @@ And here's the same thing again in Lua:
 
 The command characters must be encoded with `string.format()`. Note that in Lua you must call `flush()` to end the command input and start another set of input (data this time).
 
-Newline characters are automatically converted to the LCD's next line command, so the output here would be:
-
-    hello world
-    0.13524234984187
 
 Wiring Instructions
 -------------------
