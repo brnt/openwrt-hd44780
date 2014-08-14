@@ -29,7 +29,7 @@
 #define HD_DB6         15
 #define HD_DB7         16
 
-#define COMMAND_CHAR   0x10 // ASCII 16 = data link escape (largely unused)
+#define COMMAND_CHAR   0xff // ASCII 255 = nbsp
 
 // Structures to hold the pins we've successfully allocated.
 typedef struct PinSet {
@@ -144,7 +144,7 @@ static ssize_t hd44780_write(struct file *file, const char *buf, size_t count, l
 	if (err != 0)
 		return -EFAULT;
 
-	if (c == COMMAND_CHAR)
+	if (c&0xff == COMMAND_CHAR) // somehow, masking the char fixes a multiplying byte problem
 	{ // if the first char is COMMAND_CHAR, we enter command mode for the rest of the string
 		ptr++;
 		for (i=1;i<count;i++)

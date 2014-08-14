@@ -8,26 +8,26 @@ HD44780](http://en.wikipedia.org/wiki/Hitachi_HD44780_LCD_controller) chipset. D
 
     echo -n 'hello world' > /dev/hd44780
 
-To send commands to the unit, the first byte in the string sent to the device file must be `0x10`. `0x10` was chosen because it corresponds to the ASCII code for "data link escape" and isn't commonly used. `0x00` through `0x01` are used by the hd44780 to display custom characters. The `0x10` character can easily be sent using escape characters (ash again):
+To send commands to the unit, the first byte in the string sent to the device file must be `0xff`. `0xff` was chosen because it corresponds to the ASCII code for "data link escape" and isn't commonly used. `0x00` through `0x01` are used by the hd44780 to display custom characters. The `0xff` character can easily be sent using escape characters (ash again):
 
-    printf '\x10\x01' > /dev/hd44780
+    printf '\xff\x01' > /dev/hd44780
 
-In this example, command mode is enabled with `\x10` and the screen is cleared with `\x01`. Similar results can be achieved using escape characters when writing to the device file from most programming languages. Several commands can be chained together. This command:
+In this example, command mode is enabled with `\xff` and the screen is cleared with `\x01`. Similar results can be achieved using escape characters when writing to the device file from most programming languages. Several commands can be chained together. This command:
 
-	printf '\x10\x01\xc6\x0f' > /dev/hd44780
+	printf '\xff\x01\xc6\x0f' > /dev/hd44780
 
 will clear the display (`0x01`), move the cursor to the 6th position of the second row (`0xc6`) and make the cursor blink (`0x0f`).
 
 Each discrete string written to the file is evaluated for the presence of the command character. So this sequence
 
-    printf '\x10\x01' > /dev/hd44780
+    printf '\xff\x01' > /dev/hd44780
     printf 'hello world' > /dev/hd44780
 
 would clear the screen and then write `hello world` to it. The second statement is sent to the device file as a separate string and evaluated independently. Here's a similar routine in [NodeJS](http://nodejs.org/):
 
     var fs = require('fs');
     var data_file = '/dev/hd44780';
-    fs.writeFileSync(data_file, "\10\1");
+    fs.writeFileSync(data_file, "\ff\1");
     fs.writeFile(data_file, 'hello world\n' + Math.random()));
 
 Newline characters are automatically converted to the LCD's next line command, so the output here would be:
@@ -39,7 +39,7 @@ And here's a similar thing, in Lua this time:
 
 	local lcd, err = io.open('/dev/hd44780', 'w')
 	if not lcd then return print(err) end
-	lcd:write(string.chars(0x10, 0x01, 0xf))
+	lcd:write(string.chars(0xff, 0x01, 0x0f))
 	lcd:flush()
 	lcd:write('hello world')
 	lcd:close()
