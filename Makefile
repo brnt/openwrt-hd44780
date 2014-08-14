@@ -11,7 +11,7 @@ include $(INCLUDE_DIR)/kernel.mk
 
 PKG_NAME:=hd44780
 PKG_VERSION:=0.1
-PKG_RELEASE:=1
+PKG_RELEASE:=2
 
 PKG_BUILD_DIR:=$(BUILD_DIR)/$(PKG_NAME)-$(PKG_VERSION)
 
@@ -27,7 +27,7 @@ define KernelPackage/hd44780
   SUBMENU:=Other modules
   DEPENDS:=
   TITLE:=Kernel driver for hd44780-based LCD display
-  URL:=http://members.aol.com/bifferos/sweex/
+  URL:=https://github.com/brnt/openwrt-hd44780
   FILES:=$(PKG_BUILD_DIR)/hd44780.$(LINUX_KMOD_SUFFIX)
   VERSION:=$(LINUX_VERSION)+$(PKG_VERSION)-$(PKG_RELEASE)
   AUTOLOAD:=$(call AutoLoad,80,hd44780)
