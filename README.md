@@ -39,12 +39,12 @@ And here's a similar thing, in Lua this time:
 
 	local lcd, err = io.open('/dev/hd44780', 'w')
 	if not lcd then return print(err) end
-	lcd:write(string.format('%c%c%c', 0x10, 0x01, 0xf))
+	lcd:write(string.chars(0x10, 0x01, 0xf))
 	lcd:flush()
 	lcd:write('hello world')
 	lcd:close()
 
-The command characters must be encoded with `string.format()`. Note that in Lua you must call `flush()` to end the command input and start another set of input (data this time).
+The command characters must be encoded with `string.chars(...)`. `string.format(...)` won't work because it terminates strings on a zero character, while `string.chars(...)` happily encodes it and continues. Note that in Lua you must call `flush()` to end the command input and start another set of input (data this time).
 
 
 Wiring Instructions
